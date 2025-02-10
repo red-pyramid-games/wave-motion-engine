@@ -6,14 +6,19 @@ set(CMAKE_C_STANDARD 17)
 find_package(glfw3 REQUIRED)
 find_package(cglm REQUIRED)
 find_package(Freetype REQUIRED)
+message(${FREETYPE_LIBRARIES})
+message(${FREETYPE_INCLUDE_DIRS})
 
 add_executable(wave-motion-engine 
+    src/editor.c
     src/main.c
     src/glad.c
+    src/shader.c
+    src/text.c
 )
 
 target_link_libraries(wave-motion-engine glfw)
-target_link_libraries(wave-motion-engine ${CGLM_LIBRARIES})
+target_link_libraries(wave-motion-engine cglm)
 target_link_libraries(wave-motion-engine ${FREETYPE_LIBRARIES})
 
 target_include_directories(wave-motion-engine PUBLIC 

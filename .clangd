@@ -1,2 +1,6 @@
 CompileFlags:
-  Add: -I/home/jeremy/wave-motion-engine/inc
+  Add: [
+    -I/home/jeremy/wave-motion-engine/inc, 
+    -I/usr/local/include/freetype2
+] 
+
