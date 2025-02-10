@@ -97,6 +97,13 @@ void text_exti(Text* text) {
     if (text->bearing) {
         free(text->bearing);
     }
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glDeleteVertexArrays(1, &text->vao);
+    glDeleteBuffers(1, &text->vbo);
+
     free(text);
 }
 

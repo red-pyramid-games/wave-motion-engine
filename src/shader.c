@@ -62,6 +62,10 @@ void shader_update_uniform4fv(
 
 static char* read_shader_from_file(const char* path) {
     FILE *fp = fopen(path, "r");
+    if (fp == NULL) {
+        printf("Failed to open file for reading: %s\n", path);
+        return NULL;
+    }
 
     fseek(fp, 0, SEEK_END);
     long file_size = ftell(fp);
