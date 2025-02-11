@@ -6,7 +6,6 @@
 
 typedef struct Shader {
     unsigned int id;
-    unsigned int vao;
 } Shader;
 
 Shader* shader_init(

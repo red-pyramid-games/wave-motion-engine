@@ -36,22 +36,23 @@ Text* text_init() {
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);
     glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RED,
-        face->glyph->bitmap.width,
-        face->glyph->bitmap.rows,
-        0,
-        GL_RED,
-        GL_UNSIGNED_BYTE,
-        face->glyph->bitmap.buffer
-    );
+            GL_TEXTURE_2D,
+            0,
+            GL_RED,
+            face->glyph->bitmap.width,
+            face->glyph->bitmap.rows,
+            0,
+            GL_RED,
+            GL_UNSIGNED_BYTE,
+            face->glyph->bitmap.buffer);
 
     // set texture options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     unsigned int vao, vbo;
     glGenVertexArrays(1, &vao);
@@ -116,16 +117,20 @@ void text_render(
     const float scale, 
     const vec3 color
 ) {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     shader_use_program(program_id);
     shader_update_uniform3f(program_id, "text_color", color[0], color[1], color[2]);
     glActiveTexture(GL_TEXTURE0);
     glBindVertexArray(text->vao);
 
-    float xpos = x + *text->bearing[0];
-    float ypos = y + *text->bearing[1];
+
+    float xpos = x + *text->bearing[0] * scale;
+    float ypos = y - (*text->size[1] - *text->bearing[1]) * scale;
+
     float w = *text->size[0] * scale;
     float h = *text->size[1] * scale;
-
+    
     float vertices[6][4] = {
         { xpos,     ypos + h,   0.0f, 0.0f },            
         { xpos,     ypos,       0.0f, 1.0f },
