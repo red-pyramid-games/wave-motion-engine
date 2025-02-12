@@ -49,6 +49,7 @@ void shader_update_uniform3f(
     const float y, 
     const float z
 ) {
+    //printf("%d\n", glGetUniformLocation(program_id, uniform_name));
     glUniform3f(glGetUniformLocation(program_id, uniform_name), x, y, z);
 }
 

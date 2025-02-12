@@ -14,6 +14,7 @@ add_executable(wave-motion-engine
     src/main.c
     src/glad.c
     src/shader.c
+    src/texture.c
 )
 
 target_link_libraries(wave-motion-engine glfw)
