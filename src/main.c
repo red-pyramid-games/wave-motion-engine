@@ -80,7 +80,8 @@ int main(void) {
     }
 
     mat4 projection;
-    glm_ortho(0.0f, WIDTH, 0.0f, HEIGHT, -1.0f, 1.0f, projection);
+    glm_mat4_identity(projection);
+    glm_ortho(0, WIDTH, 0, HEIGHT, 0, 1, projection);
     shader_use_program(text_shader->id);
     shader_update_uniform4fv(text_shader->id, "projection", projection);
 
@@ -139,19 +140,19 @@ int main(void) {
     glBindVertexArray(vao);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-    glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
+    glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
     while (!glfwWindowShouldClose(window)) {
         process_input(window);
 
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        render_text(text_shader->id, "This is sample text", WIDTH / 2, HEIGHT / 2, 1.0f, (vec3){0.5, 0.8f, 0.2f});
-        //texture_render(texture, texture_shader->id);
+        render_text(text_shader->id, "This is sample text", 1000.0f, 1000.0f, 1.0f, (vec3){0.0, 0.0f, 1.0f});
+        texture_render(texture, texture_shader->id);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

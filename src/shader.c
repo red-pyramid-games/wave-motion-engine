@@ -49,7 +49,6 @@ void shader_update_uniform3f(
     const float y, 
     const float z
 ) {
-    //printf("%d\n", glGetUniformLocation(program_id, uniform_name));
     glUniform3f(glGetUniformLocation(program_id, uniform_name), x, y, z);
 }
 
@@ -58,7 +57,7 @@ void shader_update_uniform4fv(
     const char* uniform_name,
     const mat4 mat
 ) {
-    glUniform4fv(glGetUniformLocation(program_id, uniform_name), GL_FALSE, &mat[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(program_id, uniform_name), 1, GL_FALSE, &mat[0][0]);
 }
 
 static char* read_shader_from_file(const char* path) {

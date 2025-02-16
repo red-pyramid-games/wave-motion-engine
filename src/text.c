@@ -86,7 +86,7 @@ Text* text_init() {
     return text;
 }
 
-void text_exti(Text* text) {
+void text_exit(Text* text) {
     if (text == NULL) {
         return;
     }
@@ -117,8 +117,6 @@ void text_render(
     const float scale, 
     const vec3 color
 ) {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     shader_use_program(program_id);
     shader_update_uniform3f(program_id, "text_color", color[0], color[1], color[2]);
     glActiveTexture(GL_TEXTURE0);
@@ -148,7 +146,4 @@ void text_render(
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDrawArrays(GL_TRIANGLES, 0, 6);
-
-    glBindVertexArray(0);
-    glBindTexture(GL_TEXTURE_2D, 0);
 }
