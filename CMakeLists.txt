@@ -6,8 +6,7 @@ set(CMAKE_C_STANDARD 17)
 find_package(glfw3 REQUIRED)
 find_package(cglm REQUIRED)
 find_package(Freetype REQUIRED)
-message(${FREETYPE_LIBRARIES})
-message(${FREETYPE_INCLUDE_DIRS})
+message(${CMAKE_MODULE_PATH})
 
 add_executable(wave-motion-engine 
     src/editor.c
