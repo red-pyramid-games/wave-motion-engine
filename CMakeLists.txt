@@ -14,6 +14,7 @@ add_executable(wave-motion-engine
     src/main.c
     src/glad.c
     src/shader.c
+    src/text.c
     src/texture.c
 )
 
