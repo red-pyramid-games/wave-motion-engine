@@ -1,6 +1,7 @@
 CompileFlags:
   Add: [
     -I/home/jeremy/wave-motion-engine/inc, 
-    -I/usr/local/include/freetype2
+    -I/usr/local/include/freetype2,
+    -I/home/jeremy/wave-motion-engine/external/submodule/cimgui
 ] 
 
