@@ -14,4 +14,6 @@ void editor_exit(Editor* editor);
 void editor_clear(Editor* editor);
 void editor_render(Editor* editor);
 
+static void editor_render_background_edit(Editor* editor);
+
 #endif

@@ -6,9 +6,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
-#include <cimgui.h>
-
+#include "camera.h"
 #include "editor.h"
 #include "shader.h"
 #include "text.h"
@@ -87,6 +85,8 @@ int main(void) {
         printf("Error creating editor ui\n");
         return -1;
     }
+    
+    Camera* camera = camera_init(WIDTH, HEIGHT, text_shader->id);
 
     while (!glfwWindowShouldClose(window)) {
         process_input(window);

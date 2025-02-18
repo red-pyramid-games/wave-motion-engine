@@ -55,28 +55,31 @@ void editor_render(Editor* editor) {
     nk_glfw3_new_frame(editor->glfw);
 
     /* GUI */
-    if (nk_begin(editor->ctx, "Demo", nk_rect(50, 50, 230, 250),
-                NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|
-                NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE))
-    {
-        enum {EASY, HARD};
-        static int op = EASY;
-        static int property = 20;
+    editor_render_background_edit(editor);
+
+    nk_end(editor->ctx);
+    nk_glfw3_render(editor->glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
+}
+
+static void editor_render_background_edit(Editor* editor) {
+    nk_bool can_begin = nk_begin(
+        editor->ctx, 
+        "Background", 
+        nk_rect(50, 50, 230, 250),
+        NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE
+    ); 
+
+    if (can_begin) {
         nk_layout_row_static(editor->ctx, 30, 80, 1);
-        if (nk_button_label(editor->ctx, "button"))
-            fprintf(stdout, "button pressed\n");
-
-        nk_layout_row_dynamic(editor->ctx, 30, 2);
-        if (nk_option_label(editor->ctx, "easy", op == EASY)) op = EASY;
-        if (nk_option_label(editor->ctx, "hard", op == HARD)) op = HARD;
-
-        nk_layout_row_dynamic(editor->ctx, 25, 1);
-        nk_property_int(editor->ctx, "Compression:", 0, &property, 100, 10, 1);
-
-        nk_layout_row_dynamic(editor->ctx, 20, 1);
         nk_label(editor->ctx, "background:", NK_TEXT_LEFT);
         nk_layout_row_dynamic(editor->ctx, 25, 1);
-        if (nk_combo_begin_color(editor->ctx, nk_rgb_cf(*editor->bg), nk_vec2(nk_widget_width(editor->ctx),400))) {
+        nk_bool begin_color = nk_combo_begin_color(
+            editor->ctx, 
+            nk_rgb_cf(*editor->bg), 
+            nk_vec2(nk_widget_width(editor->ctx),
+            400));
+
+        if (begin_color) {
             nk_layout_row_dynamic(editor->ctx, 120, 1);
             *editor->bg = nk_color_picker(editor->ctx, *editor->bg, NK_RGBA);
             nk_layout_row_dynamic(editor->ctx, 25, 1);
@@ -87,6 +90,4 @@ void editor_render(Editor* editor) {
             nk_combo_end(editor->ctx);
         }
     }
-    nk_end(editor->ctx);
-    nk_glfw3_render(editor->glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
 }
