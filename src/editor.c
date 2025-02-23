@@ -31,8 +31,9 @@ Editor* editor_init(GLFWwindow* window) {
     nk_glfw3_font_stash_end(editor->glfw);
     
     editor->component_list = malloc(sizeof(EditorComponentList));
+    editor->component_list->component.name = "root";
     editor->component_list->next = NULL;
-    editor->component_list->count = 0;
+    editor->num_components = 1;
 
     return editor;
 }
@@ -64,11 +65,25 @@ static void editor_render_background_edit(Editor* editor) {
     if (can_begin) {
         nk_layout_row_static(editor->ctx, 30, 80, 1);
         nk_label(editor->ctx, "Componets:", NK_TEXT_LEFT);
-        //TODO: Create add and delete buttons for component list
-        EditorComponentList* head = editor->component_list;
-        while (head != NULL) {
-            // TODO: draw the component inside this window
-            head = head->next; 
+        nk_layout_row_static(editor->ctx, 30, 80, 1);
+        if (nk_button_label(editor->ctx, "Add")) {
+            char* component_name = "test_component";
+            if (editor->num_components == 0) {
+                component_name = "root";
+            }
+            editor->component_list = add_editor_component(editor->component_list, component_name);
+            editor->num_components++;
+        }
+        nk_layout_row_static(editor->ctx, 30, 80, 1);
+        if (nk_button_label(editor->ctx, "Remove") && editor->num_components > 0) {
+            editor->component_list = remove_editor_component(editor->component_list);
+            editor->num_components--;
+        }
+        EditorComponentList* node = editor->component_list;
+        nk_layout_row_static(editor->ctx, 50, 80, 1);
+        while (node != NULL) {
+            nk_label(editor->ctx, node->component.name, NK_TEXT_ALIGN_LEFT);
+            node = node->next; 
         }
         nk_layout_row_dynamic(editor->ctx, 25, 1);
     }
@@ -76,14 +91,48 @@ static void editor_render_background_edit(Editor* editor) {
     nk_end(editor->ctx);
 }
 
-static void add_editor_component(EditorComponentList* node, const char* name) {
-    if (node->next != NULL) {
-        return;
-    }    
+static EditorComponentList* add_editor_component(EditorComponentList* node, const char* name) {
+    if (node == NULL) {
+        node = malloc(sizeof(EditorComponentList));
+        int length = strlen(name);
+        node->component.name = malloc(sizeof(char) * length + 1);
+        for (int i = 0; i < length; i++) {
+            node->component.name[i] = name[i];
+        }
+        node->component.name[length] = '\0';
+        node->next = NULL;
+    } else {
+        while (node->next != NULL) {
+            node = node->next;
+        }
+        node->next = malloc(sizeof(EditorComponentList));
+        int length = strlen(name);
+        node->next->component.name = malloc(sizeof(char) * length + 1);
+        for (int i = 0; i < length; i++) {
+            node->next->component.name[i] = name[i];
+        }
+        node->next->component.name[length] = '\0';
+        node->next->next = NULL;
+    }
+    return node;
+}
 
-    node->next = malloc(sizeof(EditorComponentList));
-    strcpy(node->next->component.name, name);
-    node->next->count = node->count + 1;
-    node->next->next = NULL;
+static EditorComponentList* remove_editor_component(EditorComponentList* node) {
+    if (node == NULL) {
+        return NULL;
+    }
+
+    if (node->next == NULL) {
+        node->next = NULL;
+        return NULL;
+    }
+
+    EditorComponentList* second_last = node;
+    while(second_last->next->next != NULL) {
+        second_last = second_last->next;
+    }
+
+    second_last->next = NULL;
+    return node;
 }
 

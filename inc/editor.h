@@ -10,13 +10,13 @@ typedef struct EditorComponent {
 typedef struct EditorComponentList {
     EditorComponent component;
     struct EditorComponentList* next;
-    unsigned int count;
 } EditorComponentList;
 
 typedef struct Editor {
     struct nk_glfw* glfw;
     struct nk_context* ctx;
     EditorComponentList* component_list;
+    unsigned int num_components;
 } Editor;
 
 Editor* editor_init(GLFWwindow* window);
@@ -24,6 +24,7 @@ void editor_exit(Editor* editor);
 void editor_render(Editor* editor);
 
 static void editor_render_background_edit(Editor* editor);
-static void add_editor_component(EditorComponentList* node, const char* name);
+static EditorComponentList* add_editor_component(EditorComponentList* node, const char* name);
+static EditorComponentList* remove_editor_component(EditorComponentList* node);
 
 #endif
