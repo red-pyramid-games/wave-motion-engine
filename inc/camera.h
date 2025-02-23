@@ -9,15 +9,27 @@ typedef enum CameraType {
 } CameraType;
 
 typedef struct Camera {
-    CameraType projection;
-    vec3 background;
+    CameraType cam_projection;
+    vec3 background_color;
     vec2 screen_size;
-    vec2 position;
+    vec3 position;
     float zoom;
     vec2 clipping_plane;
     unsigned int shader_id;
+    mat4 model_matrix;
+    mat4 view_matrix;
+    mat4 projection_matrix;
+    vec3 front;
+    vec3 up;
 } Camera;
 
-Camera* camera_init(float screen_width, float screen_height, const unsigned int shader_id);
+Camera* camera_init_default();
+void camera_exit(Camera* camera);
+void camera_perspective(Camera* camera);
+void camera_ortho(Camera* camera);
+void camera_clear(vec3 clear_color);
+
+static void camera_update_view(Camera* camera);
+static void camera_update_projection(const unsigned int id, mat4 projection);
 
 #endif
