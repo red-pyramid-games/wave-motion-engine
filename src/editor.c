@@ -63,9 +63,7 @@ static void editor_render_background_edit(Editor* editor) {
     ); 
 
     if (can_begin) {
-        nk_layout_row_static(editor->ctx, 30, 80, 1);
-        nk_label(editor->ctx, "Componets:", NK_TEXT_LEFT);
-        nk_layout_row_static(editor->ctx, 30, 80, 1);
+        nk_layout_row_static(editor->ctx, 30, 80, 2);
         if (nk_button_label(editor->ctx, "Add")) {
             char* component_name = "test_component";
             if (editor->num_components == 0) {
@@ -74,18 +72,27 @@ static void editor_render_background_edit(Editor* editor) {
             editor->component_list = add_editor_component(editor->component_list, component_name);
             editor->num_components++;
         }
-        nk_layout_row_static(editor->ctx, 30, 80, 1);
         if (nk_button_label(editor->ctx, "Remove") && editor->num_components > 0) {
             editor->component_list = remove_editor_component(editor->component_list);
             editor->num_components--;
         }
         EditorComponentList* node = editor->component_list;
-        nk_layout_row_static(editor->ctx, 50, 80, 1);
-        while (node != NULL) {
-            nk_label(editor->ctx, node->component.name, NK_TEXT_ALIGN_LEFT);
-            node = node->next; 
+        nk_layout_row_static(editor->ctx, 220, 220, 1);
+        if (nk_group_begin(editor->ctx, "List:", 0)) {
+            static int selected[16];
+            nk_layout_row_static(editor->ctx, 18, 100, 1);
+            int i = 0;
+            while(node != NULL) {
+                nk_selectable_label(
+                    editor->ctx,
+                    node->component.name, 
+                    NK_TEXT_CENTERED, 
+                    &selected[i]);
+                node = node->next; 
+                i++;
+            }
         }
-        nk_layout_row_dynamic(editor->ctx, 25, 1);
+        nk_group_end(editor->ctx);
     }
 
     nk_end(editor->ctx);
@@ -102,17 +109,18 @@ static EditorComponentList* add_editor_component(EditorComponentList* node, cons
         node->component.name[length] = '\0';
         node->next = NULL;
     } else {
-        while (node->next != NULL) {
-            node = node->next;
+        EditorComponentList* temp = node;
+        while (temp->next != NULL) {
+            temp = temp->next;
         }
-        node->next = malloc(sizeof(EditorComponentList));
+        temp->next = malloc(sizeof(EditorComponentList));
         int length = strlen(name);
-        node->next->component.name = malloc(sizeof(char) * length + 1);
+        temp->next->component.name = malloc(sizeof(char) * length + 1);
         for (int i = 0; i < length; i++) {
-            node->next->component.name[i] = name[i];
+            temp->next->component.name[i] = name[i];
         }
-        node->next->component.name[length] = '\0';
-        node->next->next = NULL;
+        temp->next->component.name[length] = '\0';
+        temp->next->next = NULL;
     }
     return node;
 }
