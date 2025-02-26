@@ -1,9 +1,12 @@
 #include "editor.h"
+#include <stdio.h>
 
 #define GLFW_INCLUDE_NONE
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stdlib.h>
+#include <limits.h> /* INT_MAX */
+#include <time.h> /* struct tm, localtime */
 
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
@@ -29,12 +32,9 @@ Editor* editor_init(GLFWwindow* window) {
     struct nk_font_atlas *atlas;
     nk_glfw3_font_stash_begin(editor->glfw, &atlas);
     nk_glfw3_font_stash_end(editor->glfw);
-    
-    editor->component_list = malloc(sizeof(EditorComponentList));
-    editor->component_list->component.name = "root";
-    editor->component_list->next = NULL;
-    editor->num_components = 1;
 
+    editor->event_queue = NULL;
+    
     return editor;
 }
 
@@ -49,98 +49,97 @@ void editor_render(Editor* editor) {
     nk_glfw3_new_frame(editor->glfw);
 
     /* GUI */
-    editor_render_background_edit(editor);
-
+    editor_process_events(editor);
+    editor_render_top_menu(editor->ctx, editor->event_queue);
+    EditorComponent* component = editor_render_components(
+        editor->ctx, 
+        &editor->component);
+    editor_render_component_details(editor->ctx, component);
     nk_glfw3_render(editor->glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
 }
 
-static void editor_render_background_edit(Editor* editor) {
-    nk_bool can_begin = nk_begin(
-        editor->ctx, 
-        "Components", 
-        nk_rect(50, 50, 230, 250),
-        NK_WINDOW_BORDER|NK_WINDOW_MOVABLE|NK_WINDOW_SCALABLE|NK_WINDOW_MINIMIZABLE|NK_WINDOW_TITLE
-    ); 
+static void editor_render_top_menu(struct nk_context *ctx, EditorEventQueue* queue) {
+    /* window flags */
+    static nk_flags window_flags = NK_WINDOW_BORDER;
 
-    if (can_begin) {
-        nk_layout_row_static(editor->ctx, 30, 80, 2);
-        if (nk_button_label(editor->ctx, "Add")) {
-            char* component_name = "test_component";
-            if (editor->num_components == 0) {
-                component_name = "root";
+    if (nk_begin(ctx, "", nk_rect(0, 0, 200, 35), window_flags))
+    {
+        nk_menubar_begin(ctx);
+
+        nk_layout_row_begin(ctx, NK_STATIC, 25, 3);
+        nk_layout_row_push(ctx, 35);
+        if (nk_menu_begin_label(ctx, "Add", NK_TEXT_LEFT, nk_vec2(120, 35)))
+        {
+            nk_layout_row_dynamic(ctx, 25, 1);
+            if(nk_menu_item_label(ctx, "Transform", NK_TEXT_LEFT)) {
+                editor_push_event(queue, CREATE_TRANSFORM); 
             }
-            editor->component_list = add_editor_component(editor->component_list, component_name);
-            editor->num_components++;
+            nk_menu_end(ctx);
         }
-        if (nk_button_label(editor->ctx, "Remove") && editor->num_components > 0) {
-            editor->component_list = remove_editor_component(editor->component_list);
-            editor->num_components--;
-        }
-        EditorComponentList* node = editor->component_list;
-        nk_layout_row_static(editor->ctx, 220, 220, 1);
-        if (nk_group_begin(editor->ctx, "List:", 0)) {
-            static int selected[16];
-            nk_layout_row_static(editor->ctx, 18, 100, 1);
-            int i = 0;
-            while(node != NULL) {
-                nk_selectable_label(
-                    editor->ctx,
-                    node->component.name, 
-                    NK_TEXT_CENTERED, 
-                    &selected[i]);
-                node = node->next; 
-                i++;
-            }
-        }
-        nk_group_end(editor->ctx);
+        nk_menubar_end(ctx);
     }
-
-    nk_end(editor->ctx);
+    nk_end(ctx);
 }
 
-static EditorComponentList* add_editor_component(EditorComponentList* node, const char* name) {
-    if (node == NULL) {
-        node = malloc(sizeof(EditorComponentList));
-        int length = strlen(name);
-        node->component.name = malloc(sizeof(char) * length + 1);
-        for (int i = 0; i < length; i++) {
-            node->component.name[i] = name[i];
-        }
-        node->component.name[length] = '\0';
-        node->next = NULL;
-    } else {
-        EditorComponentList* temp = node;
-        while (temp->next != NULL) {
-            temp = temp->next;
-        }
-        temp->next = malloc(sizeof(EditorComponentList));
-        int length = strlen(name);
-        temp->next->component.name = malloc(sizeof(char) * length + 1);
-        for (int i = 0; i < length; i++) {
-            temp->next->component.name[i] = name[i];
-        }
-        temp->next->component.name[length] = '\0';
-        temp->next->next = NULL;
+static EditorComponent* editor_render_components(
+    struct nk_context* ctx, 
+    EditorComponent* component
+) {
+    EditorComponent* selected_component = NULL;
+        static nk_flags window_flags = NK_WINDOW_TITLE |
+            NK_WINDOW_BORDER |
+            NK_WINDOW_SCALABLE |
+            NK_WINDOW_MOVABLE |
+            NK_WINDOW_MINIMIZABLE |
+            NK_WINDOW_SCROLL_AUTO_HIDE;
+    if (nk_begin(ctx, "Components", nk_rect(0, 35, 200, 200), window_flags)) {
+
     }
-    return node;
+    nk_end(ctx);
+    return selected_component;
 }
 
-static EditorComponentList* remove_editor_component(EditorComponentList* node) {
-    if (node == NULL) {
-        return NULL;
+static void editor_render_component_details(struct nk_context* ctx, EditorComponent* component) {
+    if (component == NULL) {
+        return;
     }
-
-    if (node->next == NULL) {
-        node->next = NULL;
-        return NULL;
-    }
-
-    EditorComponentList* second_last = node;
-    while(second_last->next->next != NULL) {
-        second_last = second_last->next;
-    }
-
-    second_last->next = NULL;
-    return node;
 }
 
+static void editor_push_event(EditorEventQueue* queue, EditorEventType type) {
+    if (queue == NULL) {
+        queue = malloc(sizeof(EditorEventQueue));
+        queue->type = type;
+        queue->next = NULL;
+        return;
+    }
+
+    while (queue != NULL) {
+        queue = queue->next;
+    }
+
+    queue = malloc(sizeof(EditorEventQueue));
+    queue->type = type;
+    queue->next = NULL;
+}
+
+static EditorEventType editor_pop_event(EditorEventQueue *queue) {
+    EditorEventQueue* head = queue;
+    EditorEventType type = head->type;
+
+    queue = queue->next;
+    free(head);
+
+    return type;
+}
+
+static void editor_process_events(Editor *editor) {
+    while (editor->event_queue != NULL) {
+        EditorEventType type = editor_pop_event(editor->event_queue);
+        switch (type) {
+            case CREATE_TRANSFORM:
+                printf("create transfarom\n");
+                break;
+        }
+        editor->event_queue = editor->event_queue->next;
+    }
+}
