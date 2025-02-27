@@ -25,6 +25,7 @@
 
 #define MAX_COMPONENTS 128
 static int component_count = 0;
+static nk_bool* selected = NULL;
 
 Editor* editor_init(GLFWwindow* window) {
     Editor* editor = malloc(sizeof(Editor));
@@ -36,6 +37,8 @@ Editor* editor_init(GLFWwindow* window) {
     nk_glfw3_font_stash_begin(editor->glfw, &atlas);
     nk_glfw3_font_stash_end(editor->glfw);
 
+    selected = malloc(sizeof(nk_bool) * component_count);
+
     return editor;
 }
 
@@ -44,6 +47,10 @@ void editor_exit(Editor *editor) {
         return;
     }
     free (editor);
+    if (selected == NULL) {
+        return;
+    }
+    free(selected);
 }
 
 void editor_render(Editor* editor) {
@@ -68,7 +75,7 @@ static void editor_render_top_menu(struct nk_context *ctx) {
         if (nk_menu_begin_label(ctx, "Add", NK_TEXT_LEFT, nk_vec2(120, 35)))
         {
             nk_layout_row_dynamic(ctx, 25, 1);
-            nk_bool menu_item = nk_menu_item_label(ctx, "Transform", NK_TEXT_LEFT);
+            nk_bool menu_item = nk_menu_item_label(ctx, "Game Object", NK_TEXT_LEFT);
             if(menu_item && component_count < MAX_COMPONENTS) {
                 component_count++;
             } 
@@ -86,17 +93,10 @@ static void editor_render_components(struct nk_context* ctx) {
         NK_WINDOW_MOVABLE |
         NK_WINDOW_MINIMIZABLE |
         NK_WINDOW_SCROLL_AUTO_HIDE;
-    if (nk_begin(ctx, "Scene", nk_rect(0, 35, 200, 200), window_flags)) {
+    if (nk_begin(ctx, "Scene", nk_rect(0, 35, 200, 200), window_flags) && selected != NULL) {
         for (int i = 0; i < component_count; i++) {
-            if (nk_tree_push(ctx, NK_TREE_NODE, "Selectable", NK_MINIMIZED)) {
-                static nk_bool selected[4] = {nk_false, nk_false, nk_false, nk_false};
-                nk_layout_row_static(ctx, 18, 100, 1);
-                nk_selectable_label(ctx, "Selectable", NK_TEXT_LEFT, &selected[0]);
-                nk_selectable_label(ctx, "Selectable", NK_TEXT_LEFT, &selected[1]);
-                nk_selectable_label(ctx, "Selectable", NK_TEXT_LEFT, &selected[2]);
-                nk_selectable_label(ctx, "Selectable", NK_TEXT_LEFT, &selected[3]);
-                nk_tree_pop(ctx);
-            }
+            nk_layout_row_static(ctx, 18, 100, 1);
+            nk_selectable_label(ctx, "Game Object", NK_TEXT_LEFT, &selected[i]);
         }
     }
     nk_end(ctx);
