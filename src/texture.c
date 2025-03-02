@@ -1,5 +1,6 @@
 #include "texture.h"
 #include "shader.h"
+#include "transform.h"
 
 #include <glad/glad.h>
 #include <stdio.h>
@@ -68,6 +69,7 @@ Texture* texture_init(const char* path) {
     Texture* texture = malloc(sizeof(Texture));
     texture->id = texture_id;
     texture->vao = VAO;
+    texture->transform = transform_init_default();
     return texture;
 }
 
@@ -75,6 +77,8 @@ void texture_exit(Texture* texture) {
     if (!texture) {
         return;
     }
+
+    transform_exit(texture->transform);
 
     free(texture);
 }

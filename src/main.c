@@ -1,3 +1,6 @@
+#include "editor.h"
+#include <cglm/affine-pre.h>
+#include <cglm/mat4.h>
 #include <stdio.h>
 
 #define GLFW_INCLUDE_NONE
@@ -5,12 +8,12 @@
 #include <GLFW/glfw3.h>
 
 #include "camera.h"
-#include "editor.h"
 #include "shader.h"
 #include "texture.h"
+#include "transform.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void process_input(GLFWwindow* window);
+void process_input(GLFWwindow* window, Camera* camera, float delta);
 void render_text(unsigned int program_id, const char* text, float x, float y, float scale, vec3 color);
 
 const float WIDTH = 1920.0f;
@@ -43,12 +46,6 @@ int main(void) {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    Editor* editor = editor_init(window);
-    if (editor == NULL) {
-        printf("Error creating editor ui\n");
-        return -1;
-    }
-
     Shader* texture_shader = shader_init(
         "../resources/shaders/texture_vs.glsl",
         "../resources/shaders/texture_fs.glsl");
@@ -64,13 +61,26 @@ int main(void) {
     }
 
     Camera* camera = camera_init_default();
+    Editor* editor = editor_init(window);
+    if (editor == NULL) {
+        printf("Error creating editor gui\n");
+        return -1;
+    }
 
+    float prev = 0.0f;
+    float now = glfwGetTime();
     while (!glfwWindowShouldClose(window)) {
-        process_input(window);
+        float delta = now - prev;
+        prev = now;
+        now = glfwGetTime();
 
-        camera_clear(camera->background_color);
+        process_input(window, camera, delta);
+        
+        camera_clear(camera);
+        camera_update_model(camera, texture->transform->position);
+        camera_update_view(camera);
+        editor_render_camera_details(editor, camera);
         texture_render(texture, camera->shader_id);
-        editor_render(editor);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -82,9 +92,22 @@ int main(void) {
     return 0;
 }
 
-void process_input(GLFWwindow* window) {
+void process_input(GLFWwindow* window, Camera* camera, float delta) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+
+    if (glfwGetKey(window, GLFW_KEY_W)) {
+        camera->position[1] += 5.0f * delta; 
+    }
+    if (glfwGetKey(window, GLFW_KEY_S)) {
+        camera->position[1] -= 5.0f * delta;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A)) {
+        camera->position[0] -= 5.0f * delta;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D)) {
+        camera->position[0] += 5.0f * delta;
     }
 }
 

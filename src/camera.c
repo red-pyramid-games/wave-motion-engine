@@ -69,7 +69,7 @@ void camera_exit(Camera* camera) {
 
 void camera_ortho(Camera* camera) {
     glm_ortho(0, camera->screen_size[0], 0, camera->screen_size[1], 0, 1, camera->projection_matrix);
-    camera_update_projection(camera->shader_id, camera->projection_matrix);
+    camera_update_projection(camera);
 }
 
 void camera_perspective(Camera* camera) {
@@ -79,22 +79,35 @@ void camera_perspective(Camera* camera) {
         camera->clipping_plane[0], 
         camera->clipping_plane[1], 
         camera->projection_matrix);
-    camera_update_projection(camera->shader_id, camera->projection_matrix);
+    camera_update_projection(camera);
 }
 
-void camera_clear(vec3 clear_color) {
-    glClearColor(clear_color[0], clear_color[1], clear_color[2], 1.0f);
+void camera_clear(Camera* camera) {
+    glClearColor(
+        camera->background_color[0], 
+        camera->background_color[1], 
+        camera->background_color[2], 
+        camera->background_color[3]);
+
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-static void camera_update_view(Camera* camera) {
+void camera_update_model(Camera* camera, vec3 position) {
+    mat4 model;
+    glm_mat4_identity(model);
+    glm_translate(model, position);
+    shader_update_uniform4fv(camera->shader_id, "model", model);
+} 
+
+void camera_update_view(Camera* camera) {
     vec3 cam_center;
     glm_vec3_add(camera->position, camera->front, cam_center);
     glm_lookat(camera->position, cam_center, camera->up, camera->view_matrix);
     shader_update_uniform4fv(camera->shader_id, "view", camera->view_matrix);        
 }
 
-static void camera_update_projection(const unsigned int id, mat4 projection) {
-    shader_use_program(id);
-    shader_update_uniform4fv(id, "projection", projection);
+void camera_update_projection(Camera* camera) {
+    shader_use_program(camera->shader_id);
+    shader_update_uniform4fv(camera->shader_id, "projection", camera->projection_matrix);
 }
+

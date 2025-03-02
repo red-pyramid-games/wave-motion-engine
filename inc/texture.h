@@ -4,6 +4,7 @@
 typedef struct Texture {
     unsigned int id;
     unsigned int vao;
+    struct Transform* transform;
 } Texture;
 
 Texture* texture_init(const char* path);

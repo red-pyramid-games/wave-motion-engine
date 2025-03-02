@@ -10,7 +10,7 @@ typedef enum CameraType {
 
 typedef struct Camera {
     CameraType cam_projection;
-    vec3 background_color;
+    vec4 background_color;
     vec2 screen_size;
     vec3 position;
     float zoom;
@@ -27,9 +27,10 @@ Camera* camera_init_default();
 void camera_exit(Camera* camera);
 void camera_perspective(Camera* camera);
 void camera_ortho(Camera* camera);
-void camera_clear(vec3 clear_color);
+void camera_clear(Camera* camera);
 
-static void camera_update_view(Camera* camera);
-static void camera_update_projection(const unsigned int id, mat4 projection);
+void camera_update_model(Camera* camera, vec3 position);
+void camera_update_view(Camera* camera);
+void camera_update_projection(Camera* camera);
 
 #endif
