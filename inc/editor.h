@@ -12,8 +12,8 @@ Editor* editor_init(GLFWwindow* window);
 void editor_exit(Editor* editor);
 void editor_render(Editor* editor);
 
-static void editor_render_top_menu(struct nk_context *ctx);
-static void editor_render_components(struct nk_context* ctx);
-static void editor_render_component_details(struct nk_context* ctx);
+void editor_render_component_details(struct nk_context* ctx);
+void editor_render_transform_component(struct nk_context* ctx);
+void editor_render_sprite_component(struct nk_context* ctx);
 
 #endif
