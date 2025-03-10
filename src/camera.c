@@ -27,7 +27,7 @@ Camera* camera_init_default() {
     Camera* camera = malloc(sizeof(Camera));
 
     memcpy(camera->position, (vec3) { 0.0f, 0.0f, 3.0f }, sizeof(vec3)); 
-    memcpy(camera->background_color, (vec3) {0.91f, 0.3f, 0.21f}, sizeof(vec3));
+    memcpy(camera->background_color, (vec4) {0.0f, 0.0f, 0.0f, 1.0f}, sizeof(vec3));
     memcpy(camera->clipping_plane, (vec2) { 0.1f, 100.0f }, sizeof(vec2));
     memcpy(camera->screen_size, (vec2) { DEFAULT_SCREEN_WIDTH, DEFAULT_SCREEN_HEIGHT }, sizeof(vec2));
 

@@ -11,8 +11,9 @@ typedef struct Editor {
 
 Editor* editor_init(struct GLFWwindow* window);
 void editor_exit(Editor* editor);
-void editor_render(Editor* editor);
+void editor_render(Editor* editor, Camera* camera);
 
+void editor_render_menu_bar(Editor* editor, Camera* camera);
 void editor_render_camera_details(Editor* editor, Camera* camera);
 void editor_render_component_details(struct nk_context* ctx);
 void editor_render_transform_component(struct nk_context* ctx);

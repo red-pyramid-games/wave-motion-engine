@@ -2,6 +2,8 @@
 #include "camera.h"
 #include <stdio.h>
 #include <dirent.h>
+#include <unistd.h>
+#include <string.h> 
 
 #include <cglm/vec3.h>
 #define GLFW_INCLUDE_NONE
@@ -52,19 +54,147 @@ void editor_exit(Editor *editor) {
     free (editor);
 }
 
-void editor_render(Editor* editor) {
+void editor_render(Editor* editor, Camera* camera) {
     nk_glfw3_new_frame(editor->glfw);
-    editor_render_component_details(editor->ctx);
+    editor_render_menu_bar(editor, camera);
+    editor_render_camera_details(editor, camera);
     nk_glfw3_render(editor->glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
 }
 
-void editor_render_camera_details(Editor* editor, Camera* camera) {
-    nk_glfw3_new_frame(editor->glfw);
+void editor_render_menu_bar(Editor* editor, Camera* camera) {
+    if (nk_begin(editor->ctx, "Overview", nk_rect(0, 0, 400, 100), 0)) {
+        /* menubar */
+        enum menu_states {MENU_DEFAULT, MENU_WINDOWS};
+        static nk_size mprog = 60;
+        static int mslider = 10;
+        static nk_bool mcheck = nk_true;
+        nk_menubar_begin(editor->ctx);
 
+        /* menu #1 */
+        nk_layout_row_begin(editor->ctx, NK_STATIC, 25, 5);
+        nk_layout_row_push(editor->ctx, 45);
+        if (nk_menu_begin_label(editor->ctx, "MENU", NK_TEXT_LEFT, nk_vec2(120, 200))) {
+            static size_t prog = 40;
+            static int slider = 10;
+            static nk_bool check = nk_true;
+            nk_layout_row_dynamic(editor->ctx, 25, 1);
+            nk_menu_item_label(editor->ctx, "Hide", NK_TEXT_LEFT);
+            nk_menu_item_label(editor->ctx, "About", NK_TEXT_LEFT);
+            nk_progress(editor->ctx, &prog, 100, NK_MODIFIABLE);
+            nk_slider_int(editor->ctx, 0, &slider, 16, 1);
+            nk_checkbox_label(editor->ctx, "check", &check);
+            nk_menu_end(editor->ctx);
+        }
+        /* menu #2 */
+        nk_layout_row_push(editor->ctx, 60);
+        if (nk_menu_begin_label(editor->ctx, "ADVANCED", NK_TEXT_LEFT, nk_vec2(200, 600))) {
+            enum menu_state {MENU_NONE,MENU_FILE, MENU_EDIT,MENU_VIEW,MENU_CHART};
+            static enum menu_state menu_state = MENU_NONE;
+            enum nk_collapse_states state;
+
+            state = (menu_state == MENU_FILE) ? NK_MAXIMIZED: NK_MINIMIZED;
+            if (nk_tree_state_push(editor->ctx, NK_TREE_TAB, "FILE", &state)) {
+                menu_state = MENU_FILE;
+                nk_menu_item_label(editor->ctx, "New", NK_TEXT_LEFT);
+                if (nk_menu_item_label(editor->ctx, "Open", NK_TEXT_LEFT)) {
+                    FILE *fp = fopen("../save_file.txt", "r");
+                    if (fp == NULL) {
+                        printf("Failed to open file for reading: %s\n", "../save_file.txt");
+                        return;
+                    }
+
+                    fseek(fp, 0, SEEK_END);
+                    long file_size = ftell(fp);
+                    rewind(fp);
+
+                    char* buf = (char*)malloc(file_size + 1);
+                    if (buf == NULL) {
+                        printf("Error allocating buffer for file reading\n");
+                        fclose(fp);
+                        return;
+                    }
+
+                    size_t bytes_read = fread(buf, 1, file_size, fp);
+                    if (bytes_read != file_size) {
+                        printf("Error reading from file\n");
+                        fclose(fp);
+                        free(buf);
+                        return;
+                    }
+
+                    buf[file_size] = '\0';
+
+                    const char* tok;
+                    int i = 0;
+                    for (tok = strtok(buf, ":"); tok && *tok; tok = strtok(NULL, ":\n")) {
+                        if(strcmp(tok, "bg") != 0) {
+                            camera->background_color[i] = atof(tok);
+                            i++;
+                        }
+                    }
+
+                    fclose(fp);
+                    free(buf);  
+                }
+                if (nk_menu_item_label(editor->ctx, "Save", NK_TEXT_LEFT)) {
+                    FILE* fp;
+                    if ((fp = fopen("../save_file.txt", "w"))) {
+                        fprintf(fp, "bg:");
+                        fprintf(fp, "%f:", camera->background_color[0]);
+                        fprintf(fp, "%f:", camera->background_color[1]);
+                        fprintf(fp, "%f:", camera->background_color[2]);
+                        fprintf(fp, "%f", camera->background_color[3]);
+                        fclose(fp);
+                    }
+                }
+                nk_menu_item_label(editor->ctx, "Close", NK_TEXT_LEFT);
+                nk_menu_item_label(editor->ctx, "Exit", NK_TEXT_LEFT);
+                nk_tree_pop(editor->ctx);
+            } else menu_state = (menu_state == MENU_FILE) ? MENU_NONE: menu_state;
+
+            state = (menu_state == MENU_EDIT) ? NK_MAXIMIZED: NK_MINIMIZED;
+            if (nk_tree_state_push(editor->ctx, NK_TREE_TAB, "EDIT", &state)) {
+                menu_state = MENU_EDIT;
+                nk_menu_item_label(editor->ctx, "Copy", NK_TEXT_LEFT);
+                nk_menu_item_label(editor->ctx, "Delete", NK_TEXT_LEFT);
+                nk_menu_item_label(editor->ctx, "Cut", NK_TEXT_LEFT);
+                nk_menu_item_label(editor->ctx, "Paste", NK_TEXT_LEFT);
+                nk_tree_pop(editor->ctx);
+            } else menu_state = (menu_state == MENU_EDIT) ? MENU_NONE: menu_state;
+
+            state = (menu_state == MENU_VIEW) ? NK_MAXIMIZED: NK_MINIMIZED;
+            if (nk_tree_state_push(editor->ctx, NK_TREE_TAB, "VIEW", &state)) {
+                menu_state = MENU_VIEW;
+                nk_menu_item_label(editor->ctx, "About", NK_TEXT_LEFT);
+                nk_menu_item_label(editor->ctx, "Options", NK_TEXT_LEFT);
+                nk_menu_item_label(editor->ctx, "Customize", NK_TEXT_LEFT);
+                nk_tree_pop(editor->ctx);
+            } else menu_state = (menu_state == MENU_VIEW) ? MENU_NONE: menu_state;
+
+            state = (menu_state == MENU_CHART) ? NK_MAXIMIZED: NK_MINIMIZED;
+            if (nk_tree_state_push(editor->ctx, NK_TREE_TAB, "CHART", &state)) {
+                size_t i = 0;
+                const float values[]={26.0f,13.0f,30.0f,15.0f,25.0f,10.0f,20.0f,40.0f,12.0f,8.0f,22.0f,28.0f};
+                menu_state = MENU_CHART;
+                nk_layout_row_dynamic(editor->ctx, 150, 1);
+                nk_chart_begin(editor->ctx, NK_CHART_COLUMN, NK_LEN(values), 0, 50);
+                for (i = 0; i < NK_LEN(values); ++i)
+                    nk_chart_push(editor->ctx, values[i]);
+                nk_chart_end(editor->ctx);
+                nk_tree_pop(editor->ctx);
+            } else menu_state = (menu_state == MENU_CHART) ? MENU_NONE: menu_state;
+            nk_menu_end(editor->ctx);
+        }
+        nk_menubar_end(editor->ctx);
+    }
+    nk_end(editor->ctx);
+}
+
+void editor_render_camera_details(Editor* editor, Camera* camera) {
     enum nk_panel_flags flags = NK_WINDOW_TITLE | NK_WINDOW_MOVABLE;
     enum nk_text_align text_flags = NK_TEXT_ALIGN_LEFT|NK_TEXT_ALIGN_MIDDLE;
 
-    nk_begin(editor->ctx, "Camera", nk_rect(0, 0, 500, 500), flags);
+    nk_begin(editor->ctx, "Camera", nk_rect(0, 100, 500, 500), flags);
 
     nk_layout_row_dynamic(editor->ctx, 25, 3);
     camera->position[0] = nk_propertyf(editor->ctx, "X:", -5.0f, camera->position[0], 5.0f, 0.01f, 0.005f);
@@ -97,25 +227,8 @@ void editor_render_camera_details(Editor* editor, Camera* camera) {
         camera->background_color[3] = nk_propertyf(editor->ctx, "#A:", 0, background_color.a, 1.0f, 0.01f,0.005f);
         nk_combo_end(editor->ctx);
     }
-    //static const float ratio[] = {
-    //    85, 15, 100, 15, 100, 15, 100,
-    //};
-    //static char field_buffer[64];
-    //static char position_text[3][64];
-    //static int position_text_len[3];
-
-    //nk_layout_row(editor->ctx, NK_STATIC, 30, 100, ratio);
-    //nk_label(editor->ctx, "Postition", text_flags);
-    //nk_label(editor->ctx, "X:", text_flags);
-    //nk_edit_string(editor->ctx, NK_EDIT_SIMPLE, position_text[0], &position_text_len[0], 64, nk_filter_float);
-    //nk_label(editor->ctx, "Y:", text_flags);
-    //nk_edit_string(editor->ctx, NK_EDIT_SIMPLE, position_text[1], &position_text_len[1], 64, nk_filter_float);
-    //nk_label(editor->ctx, "Z:", text_flags);
-    //nk_edit_string(editor->ctx, NK_EDIT_SIMPLE, position_text[2], &position_text_len[2], 64, nk_filter_float);
 
     nk_end(editor->ctx);
-
-    nk_glfw3_render(editor->glfw, NK_ANTI_ALIASING_ON, MAX_VERTEX_BUFFER, MAX_ELEMENT_BUFFER);
 }
 
 void editor_render_component_details(struct nk_context* ctx) {

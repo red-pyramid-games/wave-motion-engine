@@ -23,6 +23,7 @@ void shader_update_uniform4fv(
     const unsigned int program_id,
     const char* uniform_name,
     const mat4 mat);
+void shader_update_int(const unsigned int program_id, const char* name, const int index);
 
 static char* read_shader_from_file(const char* path);
 static unsigned int compile_shader(const char* source, unsigned int type);

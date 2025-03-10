@@ -60,6 +60,10 @@ void shader_update_uniform4fv(
     glUniformMatrix4fv(glGetUniformLocation(program_id, uniform_name), 1, GL_FALSE, &mat[0][0]);
 }
 
+void shader_update_int(const unsigned int program_id, const char *name, const int index) {
+    glUniform1i(glGetUniformLocation(program_id, name), index);
+}
+
 static char* read_shader_from_file(const char* path) {
     FILE *fp = fopen(path, "r");
     if (fp == NULL) {
