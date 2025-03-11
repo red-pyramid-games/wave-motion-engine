@@ -1,3 +1,4 @@
+#include "model.h"
 #include <cglm/affine-pre.h>
 #include <cglm/mat4.h>
 #include <cglm/vec3.h>
@@ -68,6 +69,12 @@ int main(void) {
         "../resources/shaders/light_basic_fs.glsl");
     if (model_shader == NULL) {
         printf("Error creating shader program\n");
+        return -1;
+    }
+
+    Model* model = model_init("../resources/models/cube.obj");
+    if (model == NULL) {
+        printf("Unable to load model\n");
         return -1;
     }
 

@@ -17,7 +17,7 @@ typedef struct Model {
     char* mesh_directory;
 } Model;
 
-Model* model_init(const char* path);
+Model* model_init(char* path);
 void model_exit(Model* model);
 
 void Draw(Shader* shader, Model* model);

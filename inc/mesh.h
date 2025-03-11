@@ -24,6 +24,6 @@ Mesh* mesh_init(
     unsigned int texture_count);
 
 void mesh_exit(Mesh* mesh);
-void draw_mesh(Shader* shader, Mesh* mesh);
+void mesh_draw(Shader* shader, Mesh* mesh);
 
 #endif

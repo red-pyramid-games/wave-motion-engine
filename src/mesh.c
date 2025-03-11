@@ -68,7 +68,7 @@ void mesh_exit(Mesh* mesh) {
     free(mesh);
 }
 
-void draw_mesh(Shader* shader, Mesh* mesh) {
+void mesh_draw(Shader* shader, Mesh* mesh) {
     unsigned int diffuse_nr = 1;
     unsigned int specular_nr = 1;
     for (int i = 0; i < mesh->texture_count; i++) {
