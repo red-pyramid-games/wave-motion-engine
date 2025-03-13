@@ -14,6 +14,8 @@
 #include "shader.h"
 #include "texture.h"
 #include "transform.h"
+#include "mesh.h"
+#include "vertex.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void process_input(GLFWwindow* window, Camera* camera, float delta);
@@ -92,9 +94,10 @@ int main(void) {
         process_mouse(window, camera);
         
         camera_clear(camera);
-        camera_update_model(camera, texture->transform->position);
+        camera_update_model(camera, (vec3) { 0.0f, 0.0f, 0.0f });
         camera_update_view(camera);
-        texture_render(texture, camera->shader_id);
+
+        model_draw(model_shader, model);
 
         glfwSwapBuffers(window);
         glfwPollEvents();

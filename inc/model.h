@@ -20,11 +20,10 @@ typedef struct Model {
 Model* model_init(char* path);
 void model_exit(Model* model);
 
-void Draw(Shader* shader, Model* model);
-
-void process_node(aiNode *node, aiScene *scene);
-
-Mesh* proccess_mesh(aiMesh* mesh, aiScene* scene);
+void model_draw(Shader* shader, Model* model);
+void process_node(Mesh** meshes, aiNode *node, const aiScene *scene, unsigned int* total);
+Mesh proccess_mesh(aiMesh* mesh, const aiScene* scene);
+unsigned int get_total_textures(aiMaterial* material);
 Texture* load_material_textures(
     aiMaterial* material, 
     enum aiTextureType type, 

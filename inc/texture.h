@@ -6,6 +6,7 @@ typedef struct Texture {
     unsigned int vao;
     struct Transform* transform;
     char* type;
+    char* path;
 } Texture;
 
 Texture* texture_init(const char* path);
