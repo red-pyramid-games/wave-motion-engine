@@ -6,7 +6,7 @@
 typedef struct Vertex {
     vec3 position;
     vec3 normal;
-    vec2 tex_coords;
+    //vec2 tex_coords;
 } Vertex;
 
 Vertex* vertex_init();

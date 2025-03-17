@@ -1,11 +1,13 @@
 #include "transform.h"
 
+#include <cglm/vec3.h>
 #include <stdlib.h>
-#include <string.h>
 
 Transform* transform_init_default() {
     Transform* transform = malloc(sizeof(Transform));
-    memcpy(transform->position, (vec3) {0.0f, 0.0f, 0.0f}, sizeof(vec3));
+    glm_vec3_zero(transform->position);
+    glm_vec3_zero(transform->rotation);
+    glm_vec3_one(transform->scale);
 
     return transform;
 }

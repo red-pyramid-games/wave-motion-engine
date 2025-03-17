@@ -2,6 +2,7 @@
 #define MESH_H
 
 typedef struct Shader Shader;
+typedef struct Buffer Buffer;
 
 typedef struct Mesh{
     struct Vertex* vertices;
@@ -10,9 +11,7 @@ typedef struct Mesh{
     unsigned int indices_count;
     struct Texture* textures;
     unsigned int texture_count;
-    unsigned int vao;
-    unsigned int vbo;
-    unsigned int ebo;
+    Buffer* buffer;
 } Mesh;
 
 Mesh* mesh_init(

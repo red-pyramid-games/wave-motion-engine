@@ -5,6 +5,8 @@
 
 typedef struct Transform {
     vec3 position;
+    vec3 rotation;
+    vec3 scale;
 } Transform;
 
 Transform* transform_init_default();

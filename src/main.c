@@ -1,189 +1,61 @@
-#include "model.h"
-#include <cglm/affine-pre.h>
-#include <cglm/mat4.h>
-#include <cglm/vec3.h>
-#include <stdio.h>
-#include <string.h>
-#include <assimp/cimport.h>
-
-#define GLFW_INCLUDE_NONE
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 #include "camera.h"
+#include "cube.h"
+#include "light.h"
+#include "material.h"
+#include "mouse.h"
+#include "point_light.h"
 #include "shader.h"
-#include "texture.h"
+#include "model.h"
+#include "time.h"
 #include "transform.h"
-#include "mesh.h"
-#include "vertex.h"
+#include "keyboard.h"
+#include "graphics.h"
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void process_input(GLFWwindow* window, Camera* camera, float delta);
-void process_mouse(GLFWwindow* window, Camera* camera);
-void render_text(unsigned int program_id, const char* text, float x, float y, float scale, vec3 color);
+#include <stdbool.h>
 
-const float WIDTH = 1920.0f;
-const float HEIGHT = 1080.0f;
-
-int main(void) {
-    if (!glfwInit()) {
-        return -1;
-    }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "Wave Motion Engine", NULL, NULL);
-    if (!window) {
-        printf("Error creating glfw window\n");
-        return -1;
-    }
-
-    glfwMakeContextCurrent(window);
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        printf("Error loading glfw functions\n");
-        return -1;
-    }
-
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    Shader* texture_shader = shader_init(
-        "../resources/shaders/texture_vs.glsl",
-        "../resources/shaders/texture_fs.glsl");
-    if (!texture_shader) {
-        printf("Error creating shader program\n");
-        return -1;
-    }
-
-    Texture* texture = texture_init("../resources/textures/container.jpg");
-    if (!texture) {
-        printf("Failed to load texture\n");
-        return -1;
-    }
-
-    Shader* model_shader = shader_init(
-        "../resources/shaders/light_basic_vs.glsl",
-        "../resources/shaders/light_basic_fs.glsl");
-    if (model_shader == NULL) {
-        printf("Error creating shader program\n");
-        return -1;
-    }
-
-    Model* model = model_init("../resources/models/cube.obj");
-    if (model == NULL) {
-        printf("Unable to load model\n");
-        return -1;
+bool main() {
+    if (graphics_init() == false && window == 0) {
+        return false;
     }
 
     Camera* camera = camera_init_default();
+    Cube* new_cube = cube_init();
+    PointLight* point_light = point_light_init();
 
-    float prev = 0.0f;
-    float now = glfwGetTime();
+    float deltaTime = 0.0f;
 
-    while (!glfwWindowShouldClose(window)) {
-        float delta = now - prev;
-        prev = now;
-        now = glfwGetTime();
+    while (!graphics_window_should_close()) {
+        deltaTime = get_delta_time();
 
-        process_input(window, camera, delta);
+        process_input(window, camera, deltaTime);
         process_mouse(window, camera);
-        
+
         camera_clear(camera);
-        camera_update_model(camera, (vec3) { 0.0f, 0.0f, 0.0f });
-        camera_update_view(camera);
 
-        model_draw(model_shader, model);
+        camera_update(camera, new_cube->shader->id, new_cube->transform);
+        light_update(
+            new_cube->light, 
+            new_cube->shader->id, 
+            point_light->transform->position, 
+            camera->position);
+        material_update(new_cube->material, new_cube->shader->id);
+        model_update(new_cube->shader->id, new_cube->transform);
+        cube_draw(new_cube);
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        camera_update(camera, point_light->shader->id, point_light->transform);
+        model_update(point_light->shader->id, point_light->transform);
+        point_light_draw(point_light);
+
+        graphics_swap_buffers(window);
+        graphics_poll_events();
     }
 
-    shader_exit(texture_shader);
-    glfwTerminate();
+    cube_exit(new_cube);
+    point_light_exit(point_light);
+    camera_exit(camera);
 
-    return 0;
-}
+    graphics_exit();
 
-void process_input(GLFWwindow* window, Camera* camera, float delta) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-        glfwSetWindowShouldClose(window, true);
-    }
-
-    static const float camera_speed = 5.0f;
-    vec3 right;
-    glm_vec3_cross(camera->front, camera->up, right);
-    glm_normalize(right);
-    glm_vec3_scale(right, (camera_speed * delta), right);
-
-    vec3 front_scaled;
-    glm_vec3_scale(camera->front, (camera_speed * delta), front_scaled);
-
-    if (glfwGetKey(window, GLFW_KEY_W)) {
-        glm_vec3_add(camera->position, front_scaled, camera->position);
-    }
-    if (glfwGetKey(window, GLFW_KEY_S)) {
-        glm_vec3_sub(camera->position, front_scaled, camera->position);
-    }
-    if (glfwGetKey(window, GLFW_KEY_A)) {
-        glm_vec3_sub(camera->position, right, camera->position);
-    }
-    if (glfwGetKey(window, GLFW_KEY_D)) {
-        glm_vec3_add(camera->position, right, camera->position);
-    }
-}
-
-bool first_mouse = true;
-float yaw = -90.0f;
-float pitch = 0.0f;
-float last_x = WIDTH / 2.0f;
-float last_y = HEIGHT / 2.0f;
-
-void process_mouse(GLFWwindow* window, Camera* camera) {
-    double xpos_in;
-    double ypos_in;
-    glfwGetCursorPos(window, &xpos_in, &ypos_in);
-    float xpos = (float)xpos_in;
-    float ypos = (float)ypos_in;
-
-    if (first_mouse)
-    {
-        last_x = xpos;
-        last_y = ypos;
-        first_mouse= false;
-    }
-
-    float xoffset = xpos - last_x;
-    float yoffset = last_y - ypos; // reversed since y-coordinates go from bottom to top
-    last_x = xpos;
-    last_y = ypos;
-
-    float sensitivity = 0.1f; // change this value to your liking
-    xoffset *= sensitivity;
-    yoffset *= sensitivity;
-
-    yaw += xoffset;
-    pitch += yoffset;
-
-    // make sure that when pitch is out of bounds, screen doesn't get flipped
-    if (pitch > 89.0f)
-        pitch = 89.0f;
-    if (pitch < -89.0f)
-        pitch = -89.0f;
-
-    vec3 front;
-    front[0] = cos(glm_rad(yaw)) * cos(glm_rad(pitch));
-    front[1] = sin(glm_rad(pitch));
-    front[2] = sin(glm_rad(yaw)) * cos(glm_rad(pitch));
-    glm_normalize(front);
-    memcpy(camera->front, front, sizeof(vec3));
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
+    return true;
 }
 

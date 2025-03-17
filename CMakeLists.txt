@@ -9,16 +9,24 @@ find_package(Freetype REQUIRED)
 find_package(assimp REQUIRED)
 
 add_executable(wave-motion-engine 
-    src/basic_buffer.c
+    src/buffer.c
     src/camera.c
+    src/cube.c
     src/editor.c
     src/glad.c
+    src/graphics.c
+    src/keyboard.c
+    src/light.c
     src/main.c
+    src/material.c
     src/mesh.c
     src/model.c
+    src/mouse.c
+    src/point_light.c
     src/shader.c
     src/text.c
     src/texture.c
+    src/time.c
     src/transform.c
     src/vertex.c
 )

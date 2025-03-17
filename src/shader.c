@@ -64,6 +64,10 @@ void shader_update_int(const unsigned int program_id, const char *name, const in
     glUniform1i(glGetUniformLocation(program_id, name), index);
 }
 
+void shader_update_float(const unsigned int program_id, const char *name, const float value) {
+    glUniform1f(glGetUniformLocation(program_id, name), value);
+}
+
 static char* read_shader_from_file(const char* path) {
     FILE *fp = fopen(path, "r");
     if (fp == NULL) {
