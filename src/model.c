@@ -91,10 +91,10 @@ Mesh proccess_mesh(aiMesh* mesh, const aiScene* scene) {
             vertices[i].normal[2] = mesh->mNormals[i].z;
         }
 
-        //if(mesh->mTextureCoords[0]) {
-        //    vertices[i].tex_coords[0] = mesh->mTextureCoords[0][i].x;
-        //    vertices[i].tex_coords[1] = mesh->mTextureCoords[0][i].y;
-        //}
+        if(mesh->mTextureCoords[0]) {
+            vertices[i].tex_coords[0] = mesh->mTextureCoords[0][i].x;
+            vertices[i].tex_coords[1] = mesh->mTextureCoords[0][i].y;
+        }
     }
 
     // For now, we can assume that each face has 3 indices. AKA: GL_TRIANGLES
@@ -108,37 +108,34 @@ Mesh proccess_mesh(aiMesh* mesh, const aiScene* scene) {
         }
     }
 
-    Mesh* processed_mesh = mesh_init(vertices, mesh->mNumVertices, indices, indices_count, NULL, 0);
+    aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-    //processed_mesh.texture_count = 0;
-    //aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
+    unsigned int texture_count = 0;
 
-    //unsigned int num_diffuse_maps = aiGetMaterialTextureCount(material, aiTextureType_DIFFUSE);
-    //processed_mesh.texture_count += num_diffuse_maps;
-    //Texture* diffuse_maps = load_material_textures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+    unsigned int num_diffuse_maps = aiGetMaterialTextureCount(material, aiTextureType_DIFFUSE);
+    unsigned int num_specular_maps = aiGetMaterialTextureCount(material, aiTextureType_SPECULAR);
 
-    //unsigned int num_specular_maps = aiGetMaterialTextureCount(material, aiTextureType_SPECULAR);
-    //processed_mesh.texture_count += num_specular_maps;
-    //Texture* specular_maps = load_material_textures(material, aiTextureType_SPECULAR, "texture_specular");
-    //
+    texture_count += num_diffuse_maps + num_specular_maps;
+
+    Texture* diffuse_maps = load_material_textures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+    Texture* specular_maps = load_material_textures(material, aiTextureType_SPECULAR, "texture_specular");
+    
     //unsigned int num_normal_maps = aiGetMaterialTextureCount(material, aiTextureType_HEIGHT);
-    //processed_mesh.texture_count += num_normal_maps;
     //Texture* normal_maps = load_material_textures(material, aiTextureType_HEIGHT, "texture_normal");
 
     //unsigned int num_height_maps = aiGetMaterialTextureCount(material, aiTextureType_AMBIENT);
-    //processed_mesh.texture_count += num_height_maps;
     //Texture* height_maps = load_material_textures(material, aiTextureType_AMBIENT, "texture_height");
 
-    //processed_mesh.textures = malloc(sizeof(Texture) * processed_mesh.texture_count);
-    //unsigned int offset = 0;
-    //if (diffuse_maps != NULL) {
-    //    memcpy(processed_mesh.textures, diffuse_maps, sizeof(Texture) * num_diffuse_maps);
-    //    offset += num_diffuse_maps;
-    //}
-    //if (specular_maps != NULL) {
-    //    memcpy(processed_mesh.textures + offset, specular_maps, sizeof(Texture) * num_specular_maps);
-    //    offset += num_specular_maps;
-    //}
+    Texture* textures = malloc(sizeof(Texture) * texture_count);
+    unsigned int offset = 0;
+    if (diffuse_maps != NULL) {
+        memcpy(textures, diffuse_maps, sizeof(Texture) * num_diffuse_maps);
+        offset += num_diffuse_maps;
+    }
+    if (specular_maps != NULL) {
+        memcpy(textures + offset, specular_maps, sizeof(Texture) * num_specular_maps);
+        offset += num_specular_maps;
+    }
     //if (normal_maps != NULL) {
     //    memcpy(processed_mesh.textures + offset, normal_maps, sizeof(Texture) * num_normal_maps);
     //    offset += num_normal_maps;
@@ -147,6 +144,16 @@ Mesh proccess_mesh(aiMesh* mesh, const aiScene* scene) {
     //    memcpy(processed_mesh.textures + offset, height_maps, sizeof(Texture) * num_height_maps);
     //    offset += num_height_maps;
     //}
+
+    Mesh* processed_mesh = mesh_init(
+        vertices, 
+        mesh->mNumVertices, 
+        indices, 
+        indices_count, 
+        textures, 
+        texture_count);
+
+    free(textures);
 
     return *processed_mesh;
 }
@@ -161,25 +168,14 @@ Texture* load_material_textures(
         return NULL;
     }
 
-    Texture* texture = texture_init("../resources/textures/container.jpg");
-    texture->type = malloc(sizeof(char) * strlen(type_name));
-    memcpy(texture->type, type_name, sizeof(char) * strlen(type_name));
-    //for (int i = 0; i < texture_count; i++) {
-    //    struct aiString str;
-    //    aiGetMaterialTexture(material, type, i, &str, NULL, NULL, NULL, NULL, NULL, NULL);
-    //    bool skip = false;
-    //    int textures_loaded = 0;
-    //    for (int j = 0; j < textures_loaded; j++) {
-    //        if (strcmp("", str.data) == 0) {
-    //            skip = true;
-    //            break;
-    //        }
-    //    }
-    //    if (!skip) {
-    //    }
-    //}
+    Texture* textures = malloc(sizeof(Texture) * texture_count);
+    for (int i = 0; i < texture_count; i++) {
+        struct aiString str;
+        aiGetMaterialTexture(material, type, i, &str, NULL, NULL, NULL, NULL, NULL, NULL);
+        textures[i] = *texture_init(str.data);
+    }
     
-    return texture;
+    return textures;
 }
 
 void model_update(const unsigned int shader_id, Transform* transform) {

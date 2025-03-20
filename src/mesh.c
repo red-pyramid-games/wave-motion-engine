@@ -27,9 +27,9 @@ Mesh* mesh_init(
     mesh->indices_count = indices_count;
     memcpy(mesh->indices, indices, sizeof(unsigned int) * indices_count);
 
-    //mesh->textures = malloc(sizeof(Texture) * texture_count);
-    //mesh->texture_count = texture_count;
-    //memcpy(mesh->textures, textures, sizeof(Texture) * texture_count);
+    mesh->textures = malloc(sizeof(Texture) * texture_count);
+    mesh->texture_count = texture_count;
+    memcpy(mesh->textures, textures, sizeof(Texture) * texture_count);
 
     //glGenVertexArrays(1, &mesh->vao);
     //glGenBuffers(1, &mesh->vbo);

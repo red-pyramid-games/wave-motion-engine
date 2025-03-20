@@ -22,6 +22,13 @@ Buffer* buffer_pn_init(
     const unsigned int* indices,
     const unsigned int num_indices);
 
+// Texture Coords buffer
+Buffer* buffer_pntexture_init(
+    const Vertex* vertices, 
+    const unsigned int num_vertices, 
+    const unsigned int* indices,
+    const unsigned int num_indices);
+
 // Position Normal Texture buffer
 Buffer* buffer_pnt_init();
 void buffer_exit(Buffer* buffer);

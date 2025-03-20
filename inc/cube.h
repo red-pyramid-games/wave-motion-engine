@@ -9,6 +9,7 @@ typedef struct Cube {
     struct Model* model;
     struct Shader* shader;
     struct Material* material;
+    struct MaterialTexture* material_texture;
     struct Light* light;
     struct Transform* transform;
     vec3 color;
