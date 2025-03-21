@@ -1,7 +1,6 @@
 #include "cube.h"
 
 #include "buffer.h"
-#include "light.h"
 #include "mesh.h"
 #include "material.h"
 #include "model.h"
@@ -35,7 +34,6 @@ Cube* cube_init() {
 
     cube->material = material_init_default();
     cube->material_texture = material_texture_init_default();
-    cube->light = light_init(cube->color);
 
     return cube;
 }

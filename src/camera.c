@@ -87,5 +87,7 @@ void camera_update(Camera* camera, const unsigned int shader_id, Transform* tran
     shader_update_uniform4fv(shader_id, "projection", camera->projection_matrix);
     shader_update_uniform4fv(shader_id, "view", camera->view_matrix);
     camera_update_view(camera, shader_id);
+    // update viewPos in fragment shader
+    shader_update_uniform3f(shader_id, "viewPos", camera->position[0], camera->position[1], camera->position[2]);
 }
 

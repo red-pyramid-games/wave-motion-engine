@@ -9,6 +9,11 @@ find_package(Freetype REQUIRED)
 find_package(assimp REQUIRED)
 
 add_executable(wave-motion-engine 
+    src/game_objects/point_light_go.c
+    src/lighting/direction_light.c
+    src/lighting/light.c
+    src/lighting/point_light.c
+    src/lighting/spot_light.c
     src/buffer.c
     src/camera.c
     src/cube.c
@@ -16,13 +21,11 @@ add_executable(wave-motion-engine
     src/glad.c
     src/graphics.c
     src/keyboard.c
-    src/light.c
     src/main.c
     src/material.c
     src/mesh.c
     src/model.c
     src/mouse.c
-    src/point_light.c
     src/shader.c
     src/text.c
     src/texture.c
