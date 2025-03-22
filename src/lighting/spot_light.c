@@ -14,6 +14,8 @@ SpotLight* spot_light_init() {
     vec3 diffuse = {0.8f, 0.8f, 0.8f};
     vec3 specular = {1.0f, 1.0f, 1.0f};
     spot_light->light_base = point_light_init(-1, ambient, diffuse, specular);
+    spot_light->inner_angle = 12.5f;
+    spot_light->outter_angle = 15.0f;
 
     return spot_light;
 }

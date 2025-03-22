@@ -13,7 +13,7 @@ typedef struct PointLight {
 } PointLight;
 
 PointLight* point_light_init(
-    const unsigned int idx,
+    const int idx,
     vec3 ambient,
     vec3 diffuse,
     vec3 specular);

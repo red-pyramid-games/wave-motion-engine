@@ -3,6 +3,7 @@
 
 #include "shader.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #define INDEX_POSITION 12
@@ -16,7 +17,7 @@ static char light_linear   [] = "pointLights[0].linear";
 static char light_quadradic[] = "pointLights[0].quadratic";
 
 PointLight* point_light_init(
-    const unsigned int idx,
+    const int idx,
     vec3 ambient,
     vec3 diffuse,
     vec3 specular
@@ -28,7 +29,7 @@ PointLight* point_light_init(
     light->linear = 0.09f;
     light->quadradic = 0.032f;
 
-    if (light->id >= 0) {
+    if (idx >= 0) {
         light_position [INDEX_POSITION] = light->id + '0'; 
         light_ambient  [INDEX_POSITION] = light->id + '0'; 
         light_diffuse  [INDEX_POSITION] = light->id + '0'; 
@@ -52,6 +53,18 @@ void point_light_update(
     vec3 light_pos, 
     vec3 camera_pos 
 ) {    
+    if (light->id < 0) {
+        return;
+    }
+
+    light_position [INDEX_POSITION] = light->id + '0'; 
+    light_ambient  [INDEX_POSITION] = light->id + '0'; 
+    light_diffuse  [INDEX_POSITION] = light->id + '0'; 
+    light_specular [INDEX_POSITION] = light->id + '0'; 
+    light_constant [INDEX_POSITION] = light->id + '0'; 
+    light_linear   [INDEX_POSITION] = light->id + '0'; 
+    light_quadradic[INDEX_POSITION] = light->id + '0'; 
+
     shader_update_uniform3f(shader_id, light_position, light_pos[0], light_pos[1], light_pos[2]);
 
     shader_update_uniform3f(
@@ -60,6 +73,7 @@ void point_light_update(
         light->light_base->ambient[0], 
         light->light_base->ambient[1], 
         light->light_base->ambient[2]);
+
 
     shader_update_uniform3f(
         shader_id, 
